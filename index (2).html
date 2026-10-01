@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>關西行程</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f5f7;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
+  .wrap{max-width:620px;margin:auto;padding:18px 16px 50px}
+  .top{display:flex;justify-content:space-between;align-items:end;margin-bottom:16px}
+  h1{font-size:24px;margin:0}.count{font-size:13px;color:#687386}
+  .day{font-size:13px;font-weight:700;color:#687386;margin-bottom:7px}
+  .current{background:white;border-radius:18px;padding:20px;box-shadow:0 4px 20px #00000010;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+  .current:active{transform:scale(.99)}
+  .label{font-size:12px;font-weight:800;letter-spacing:.08em;color:#64748b}
+  .time{font-size:17px;font-weight:800;margin-top:10px}
+  .title{font-size:23px;font-weight:800;line-height:1.45;margin-top:5px}
+  .remark{margin-top:12px;padding-top:12px;border-top:1px solid #e8ebef;color:#526071;line-height:1.5;font-size:14px}
+  .tap{margin-top:18px;text-align:center;background:#111827;color:white;padding:13px;border-radius:12px;font-weight:700}
+  .nextbox{margin-top:16px;background:#e9edf2;border-radius:14px;padding:15px}
+  .nexttitle{font-size:12px;font-weight:800;color:#778293;margin-bottom:7px}
+  .nextrow{display:flex;gap:12px;align-items:flex-start}.nexttime{font-weight:700;white-space:nowrap}.nextname{font-weight:650}
+  .buttons{display:flex;gap:10px;margin-top:14px}
+  button{flex:1;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:700;background:#e2e6eb;color:#263241}
+  .history{margin-top:24px}.history h2{font-size:15px;margin:0 0 9px;color:#667085}
+  .done{padding:10px 4px;border-bottom:1px solid #dfe3e8;color:#9aa2ad;text-decoration:line-through;font-size:13px}
+  .finished{text-align:center;background:white;padding:35px 20px;border-radius:18px}
+  .finished b{font-size:24px}
+
+  .full{margin-top:28px}
+  .full h2{font-size:18px;margin:0 0 14px}
+  .dayblock{margin:0 0 18px}
+  .dayhead{font-size:14px;font-weight:800;color:#526071;margin:0 0 6px;padding:0 3px}
+  .triprow{display:grid;grid-template-columns:92px 1fr;gap:10px;padding:11px 5px;border-bottom:1px solid #dfe3e8;font-size:14px;line-height:1.45}
+  .triptime{font-weight:750;white-space:nowrap}
+  .tripname{font-weight:600}
+  .tripremark{grid-column:2;color:#778293;font-size:12px;margin-top:-4px}
+  .triprow.completed{color:#a0a7b1;text-decoration:line-through}
+  .triprow.active{background:#fff;border-radius:9px;padding-left:9px;padding-right:9px;text-decoration:none}
+  @media(max-width:480px){.triprow{grid-template-columns:102px minmax(0,1fr)}.wrap{padding-left:13px;padding-right:13px}.triptime{font-size:13px}}
+
+  .title a,.tripname a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+  .completed a{color:inherit}
+
+  /* burning fuse completion effect */
+  .triprow{position:relative;overflow:hidden}
+  .triprow.just-done::before{
+    content:"";position:absolute;left:0;top:50%;height:2px;width:100%;
+    background:linear-gradient(90deg,#667085 0%,#667085 46%,transparent 46%);
+    background-size:10px 2px;
+    transform:scaleX(0);transform-origin:left;
+    animation:fuseTrail 1.05s linear forwards;
+  }
+  .triprow.just-done::after{
+    content:"✦";position:absolute;left:-12px;top:calc(50% - 13px);
+    font-size:23px;line-height:26px;color:#ff2d2d;
+    text-shadow:0 0 4px #ffb3a7,0 0 9px #ff3b30,0 0 14px #ff6b00;
+    animation:fuseSpark 1.05s linear forwards;
+  }
+  .triprow.just-done{animation:fadeDone .55s 1.02s forwards}
+  @keyframes fuseTrail{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  @keyframes fuseSpark{
+    0%{left:-12px;transform:rotate(0deg) scale(.7)}
+    20%{transform:rotate(90deg) scale(1.25)}
+    40%{transform:rotate(180deg) scale(.8)}
+    60%{transform:rotate(270deg) scale(1.3)}
+    80%{transform:rotate(360deg) scale(.85)}
+    100%{left:calc(100% - 12px);transform:rotate(450deg) scale(1.45);opacity:0}
+  }
+  @keyframes fadeDone{to{color:#a0a7b1;opacity:.62;text-decoration:line-through}}
+
+  /* final goodbye */
+  #goodbyeOverlay{position:fixed;inset:0;background:rgba(244,245,247,.96);z-index:9999;
+    display:none;align-items:center;justify-content:center;text-align:center}
+  #goodbyeOverlay.show{display:flex;animation:overlayIn .35s ease-out}
+  .goodbyeText{font-size:clamp(34px,9vw,64px);font-weight:850;letter-spacing:-.03em;
+    animation:popBye .7s cubic-bezier(.2,.9,.25,1.25)}
+  .flag{font-size:clamp(72px,22vw,140px);margin-top:18px;display:block;
+    animation:flagPop .65s .55s both,flagFade 1.8s 2.2s forwards}
+  @keyframes overlayIn{from{opacity:0}to{opacity:1}}
+  @keyframes popBye{0%{opacity:0;transform:scale(.55)}70%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+  @keyframes flagPop{0%{opacity:0;transform:translateY(25px) scale(.4)}75%{transform:translateY(0) scale(1.15)}100%{opacity:1;transform:scale(1)}}
+  @keyframes flagFade{to{opacity:0;transform:translateY(-20px) scale(.9)}}
+
+  .liveclock{margin-top:5px;font-size:13px;font-weight:700;color:#687386;font-variant-numeric:tabular-nums}
+
+  #shrimpModal{position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:9000;
+    display:none;align-items:center;justify-content:center;padding:22px}
+  #shrimpModal.show{display:flex}
+  .shrimpCard{width:min(390px,100%);background:white;border-radius:20px;padding:25px 20px 20px;
+    text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.22);animation:shrimpPop .25s ease-out}
+  .shrimpQuestion{font-size:24px;font-weight:850;margin-bottom:20px}
+  .shrimpChoices{display:grid;gap:9px}
+  .shrimpChoices button{background:#111827;color:#fff}
+  .shrimpChoices button.notyet{background:#e5e7eb;color:#263241}
+  @keyframes shrimpPop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+      <div><h1>🇯🇵 關西行程</h1><div class="liveclock"><span id="liveDate"></span>　<span id="liveTime"></span></div></div>
+      <div class="count" id="count"></div>
+    </div>
+  <div id="app"></div>
+</div>
+<script>
+const trips = [
+ {day:"D1 10/7（三）",time:"06:15",title:"機場 check-in、吃早餐、買 eSIM"},
+ {day:"D1 10/7（三）",time:"08:15–12:00",title:"坐飛機"},
+ {day:"D1 10/7（三）",time:"12:30–15:30",title:"🚃 到臨空城與泰迪熊一行人會合、逛街",remark:"預計 13:30 出關"},
+ {day:"D1 10/7（三）",time:"15:30–17:00",title:"🚃 前往飯店",remark:"機場線 🚃 西九條站 🔄 夢咲線 🚃 環球城站"},
+ {day:"D1 10/7（三）",time:"17:00–18:30",title:"飯店 check in 睡午覺",url:"https://maps.app.goo.gl/bSN5NvjKdKzqDV1b6"},
+ {day:"D1 10/7（三）",time:"18:30–20:00",title:"飯店吃晚餐",remark:"訂 18:30",url:"https://maps.app.goo.gl/2HeGmk4VLLg5n2kf6"},
+ {day:"D1 10/7（三）",time:"20:00",title:"晃晃"},
+
+ {day:"D2 10/8（四）",time:"全天",title:"USJ"},
+
+ {day:"D3 10/9（五）",time:"10:30–11:00",title:"🚃 出門前往梅田飯店（備案 UBER）",remark:"🚶 環球城站／夢咲線 🚃 西九條站 🔄 大阪環狀線 🚃 大阪車站 🚶 飯店"},
+ {day:"D3 10/9（五）",time:"11:00–11:20",title:"梅田飯店放行李"},
+ {day:"D3 10/9（五）",time:"11:20–12:20",title:"🚃 前往近鐵奈良站",remark:"🚶 西梅田／四橋線 🚃 難波站 🔄 近鐵奈良線（快速急行）🚃 奈良站"},
+ {day:"D3 10/9（五）",time:"12:20–13:45",title:"奈良站出站、附近找東西吃午餐",url:"https://maps.app.goo.gl/5uaH134HteH4w9UD6"},
+ {day:"D3 10/9（五）",time:"13:45–16:00",title:"奈良公園餵鹿 > 東大寺 > 二月堂",remark:"公園不用待太久，可邊走邊餵，山上還有鹿，人較少"},
+ {day:"D3 10/9（五）",time:"16:00–日落",title:"若草山（看夕陽餵鹿、需買票）> 奈良站",remark:"往八幡宮走到若草山登山口步行上山（公園可先買好山上要餵鹿的仙貝）"},
+ {day:"D3 10/9（五）",time:"18:00–end",title:"奈良 or 回梅田找晚餐",remark:"有時間下山後可再去春日大社"},
+
+ {day:"D4 10/10（六）",time:"11:00–11:40",title:"出門前往生田神社",remark:"🚶 大阪車站／🚃 東海道線往新快速湖西線 🚶 生田神社"},
+ {day:"D4 10/10（六）",time:"11:40",title:"生田神社",url:"https://maps.app.goo.gl/WMdWrz41j9aKEffG8"},
+ {day:"D4 10/10（六）",time:"12:20–14:00",title:"三宮附近找午餐吃（不用太飽）"},
+ {day:"D4 10/10（六）",time:"14:00–14:30",title:"前往 átoa",remark:"🚶 20 分到 átoa（備案 UBER）"},
+ {day:"D4 10/10（六）",time:"14:30–16:00",title:"átoa",url:"https://maps.app.goo.gl/7RsrHgGkcGM1zKAX8"},
+ {day:"D4 10/10（六）",time:"16:00–16:20",title:"前往神戶港",remark:"🚶 20 分到神戶港（備案 UBER）"},
+ {day:"D4 10/10（六）",time:"16:20–18:00",title:"神戶港周邊晃晃（炸蝦）、看夕陽"},
+ {day:"D4 10/10（六）",time:"18:00–18:25",title:"前往 Mouriya 凜",remark:"🚶 25 分到餐廳，訂 18:30（備案 UBER）"},
+ {day:"D4 10/10（六）",time:"18:25",title:"Mouriya 凜",url:"https://maps.app.goo.gl/QjE3dWLeh4AjTStz5"},
+ {day:"D4 10/10（六）",time:"20:00",title:"吃完可回梅田 or 走回神戶港看夜景"},
+
+ {day:"D5 10/11（日）",time:"11:00",title:"check-out、出門、去板急 Goyard"},
+ {day:"D5 10/11（日）",time:"17:00",title:"到機場"}
+];
+
+const KEY="kansai_trip_progress_v1";
+let index=Math.min(parseInt(localStorage.getItem(KEY)||"0"),trips.length);
+let justDoneIndex=-1;
+
+function esc(s=""){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+function render(){
+ const app=document.getElementById("app");
+ document.getElementById("count").textContent=`${index}/${trips.length} 已完成`;
+ if(index>=trips.length){
+   app.innerHTML=`<div class="finished"><b>✓ 全部完成</b><p>旅程結束</p></div>
+   <div class="buttons"><button onclick="undo()">← 上一步</button><button onclick="resetAll()">重新開始</button></div>`;
+   return;
+ }
+ const x=trips[index], n=trips[index+1];
+ let hist="";
+ const start=Math.max(0,index-4);
+ for(let i=start;i<index;i++) hist+=`<div class="done">✓ ${esc(trips[i].time)}　${esc(trips[i].title)}</div>`;
+ app.innerHTML=`
+   <div class="day">${esc(x.day)}</div>
+   <div class="current" onclick="completeCurrent()">
+     <div class="label">現在</div>
+     <div class="time">${esc(x.time)}</div>
+     <div class="title">${x.url?(x.title==="奈良站出站、附近找東西吃午餐"
+      ?`<a href="${x.url}" target="_blank" onclick="event.stopPropagation()">奈良</a>${esc(x.title.slice(2))}`
+      :`<a href="${x.url}" target="_blank" onclick="event.stopPropagation()">${esc(x.title)}</a>`):esc(x.title)}</div>
+     ${x.remark?`<div class="remark">📝 ${esc(x.remark)}</div>`:""}
+     <div class="tap">點一下完成 ✓</div>
+   </div>
+   ${n?`<div class="nextbox">
+      <div class="nexttitle">下一個行程</div>
+      <div class="nextrow"><div class="nexttime">${esc(n.time)}</div><div class="nextname">${esc(n.title)}</div></div>
+   </div>`:""}
+   <div class="buttons"><button onclick="undo()">← 上一步</button><button onclick="resetAll()">重設進度</button></div>
+   ${renderFullSchedule()}
+ `;
+}
+function renderFullSchedule(){
+ let out='<div class="full"><h2>完整行程</h2>';
+ let lastDay="";
+ trips.forEach((t,i)=>{
+   if(t.day!==lastDay){
+     if(lastDay) out+='</div>';
+     out+=`<div class="dayblock"><div class="dayhead">${esc(t.day)}</div>`;
+     lastDay=t.day;
+   }
+   const state=i===justDoneIndex?" just-done":(i<index?" completed":(i===index?" active":""));
+   out+=`<div class="triprow${state}">
+     <div class="triptime">${i<index?"✓ ":""}${esc(t.time)}</div>
+     <div class="tripname">${t.url?(t.title==="奈良站出站、附近找東西吃午餐"
+      ?`<a href="${t.url}" target="_blank">奈良</a>${esc(t.title.slice(2))}`
+      :`<a href="${t.url}" target="_blank">${esc(t.title)}</a>`):esc(t.title)}</div>
+     ${t.remark?`<div class="tripremark">${esc(t.remark)}</div>`:""}
+   </div>`;
+ });
+ if(lastDay) out+='</div>';
+ return out+'</div>';
+}
+function completeCurrent(){
+ if(index>=trips.length) return;
+ const current=trips[index];
+ if(current.time==="14:30–16:00" && current.title==="átoa"){
+   document.getElementById("shrimpWarning").style.display="none";
+   document.getElementById("shrimpModal").classList.add("show");
+   return;
+ }
+ finishCurrent();
+}
+function finishCurrent(){
+ if(index>=trips.length) return;
+ const completed=index;
+ index++;
+ localStorage.setItem(KEY,index);
+ justDoneIndex=completed;
+ render();
+ window.scrollTo({top:0,behavior:"smooth"});
+ setTimeout(()=>{ justDoneIndex=-1; render(); },1650);
+ if(index===trips.length) setTimeout(showGoodbye,1700);
+}
+function shrimpAnswer(answer){
+ const modal=document.getElementById("shrimpModal");
+ if(answer==="notyet"){
+   document.getElementById("shrimpWarning").style.display="block";
+   return;
+ }
+ modal.classList.remove("show");
+ finishCurrent();
+}
+function showGoodbye(){
+ const el=document.getElementById("goodbyeOverlay");
+ el.classList.add("show");
+ setTimeout(()=>el.classList.remove("show"),4300);
+}
+function undo(){
+ if(index>0){index--;localStorage.setItem(KEY,index);render();window.scrollTo({top:0,behavior:"smooth"});}
+}
+function resetAll(){
+ if(confirm("確定要把所有完成紀錄清除嗎？")){index=0;localStorage.setItem(KEY,index);render();}
+}
+function updateClock(){
+ const now=new Date();
+ const dateFmt=new Intl.DateTimeFormat("zh-TW",{
+   timeZone:"Asia/Tokyo",month:"2-digit",day:"2-digit",weekday:"short"
+ });
+ const timeFmt=new Intl.DateTimeFormat("zh-TW",{
+   timeZone:"Asia/Tokyo",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false
+ });
+ document.getElementById("liveDate").textContent=dateFmt.format(now);
+ document.getElementById("liveTime").textContent=timeFmt.format(now);
+}
+updateClock();
+setInterval(updateClock,1000);
+render();
+</script>
+<div id="shrimpModal">
+  <div class="shrimpCard">
+    <div class="shrimpQuestion">🍤 炸蝦買了嗎？</div>
+    <div id="shrimpWarning" style="display:none;font-weight:850;margin:-6px 0 14px;font-size:19px">去買炸蝦😠</div><div class="shrimpChoices">
+      <button onclick="shrimpAnswer('bought')">買了</button>
+      <button class="notyet" onclick="shrimpAnswer('notyet')">還沒</button>
+      <button onclick="shrimpAnswer('unavailable')">買不到 :(</button>
+    </div>
+  </div>
+</div>
+<div id="goodbyeOverlay"><div><div class="goodbyeText">Bye bye Kansai~</div><span class="flag">🇯🇵</span></div></div>
+</body>
+</html>
